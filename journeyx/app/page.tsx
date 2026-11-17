@@ -1,69 +1,57 @@
-import Image from "next/image";
-
+'use client';
+import { useState, useEffect, useMemo } from 'react';
+import { Icon, Modal, NetworkMap } from './components';
+import { stops, connections, stopName, findJourneys, type Priority, type Disruption, type Journey } from '@/lib/network';
+type Saved = {
+    from: string;
+    to: string;
+    priority: Priority;
+};
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    const [tab, setTab] = useState('planner'), [from, setFrom] = useState('fort'), [to, setTo] = useState('mount'), [query, setQuery] = useState({ from: 'fort', to: 'mount' }), [priority, setPriority] = useState<Priority>('Balanced'), [mode, setMode] = useState('all'), [selected, setSelected] = useState<string | null>(null), [disruptions, setDisruptions] = useState<Disruption[]>([]), [edge, setEdge] = useState('e6'), [kind, setKind] = useState<'delay' | 'closed'>('delay'), [delay, setDelay] = useState(15), [modal, setModal] = useState<'details' | 'compare' | 'about' | null>(null), [theme, setTheme] = useState('system'), [saved, setSaved] = useState<Saved[]>([]), [ready, setReady] = useState(false), [notice, setNotice] = useState(''), [mobileMap, setMobileMap] = useState(false);
+    useEffect(() => { try {
+        const t = localStorage.getItem('journeyx-theme');
+        if (t && ['light', 'dark', 'system'].includes(t))
+            setTheme(t);
+        const raw = JSON.parse(localStorage.getItem('journeyx-saved') || '[]');
+        if (Array.isArray(raw))
+            setSaved(raw.filter(v => stops.some(s => s.id === v?.from) && stops.some(s => s.id === v?.to) && ['Balanced', 'Fastest', 'Cheapest', 'Reliable'].includes(v?.priority)));
+    }
+    catch { } setReady(true); }, []);
+    useEffect(() => { const media = window.matchMedia('(prefers-color-scheme: dark)'); const apply = () => { document.documentElement.dataset.theme = theme === 'system' ? (media.matches ? 'dark' : 'light') : theme; }; apply(); media.addEventListener('change', apply); if (ready)
+        try {
+            localStorage.setItem('journeyx-theme', theme);
+        }
+        catch { } return () => media.removeEventListener('change', apply); }, [theme, ready]);
+    useEffect(() => { if (ready)
+        try {
+            localStorage.setItem('journeyx-saved', JSON.stringify(saved));
+        }
+        catch { } }, [saved, ready]);
+    useEffect(() => { if (!notice)
+        return; const t = setTimeout(() => setNotice(''), 3500); return () => clearTimeout(t); }, [notice]);
+    const journeys = useMemo(() => findJourneys(query.from, query.to, priority, disruptions, mode), [query, priority, disruptions, mode]);
+    const active = journeys.find(j => j.id === selected) ?? journeys[0];
+    const isSaved = saved.some(s => s.from === query.from && s.to === query.to && s.priority === priority);
+    function save() { if (isSaved) {
+        setSaved(saved.filter(s => !(s.from === query.from && s.to === query.to && s.priority === priority)));
+        setNotice('Journey removed from saved');
+    }
+    else {
+        setSaved([...saved, { ...query, priority }]);
+        setNotice('Journey saved on this device');
+    } }
+    const reason = (j: Journey) => priority === 'Cheapest' ? `The lowest estimated fare for this search: LKR ${j.fare}.` : priority === 'Fastest' ? `The shortest estimated journey: ${j.minutes} minutes, including waits.` : priority === 'Reliable' ? `A ${j.reliability}/100 modelled reliability score with ${j.transfers} transfers.` : `A considered balance of fare, travel time, and ${j.transfers === 0 ? 'a direct service' : 'connection reliability'}.`;
+    return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#" onClick={e => { e.preventDefault(); setTab('planner'); }}><span className="brand-icon"><Icon name="route" size={25}/></span>Journey<span className="brand-x">X</span></a><div className="workspace-label">YOUR DAILY, SIMPLIFIED</div><nav aria-label="Main navigation">{[['planner', 'route', 'Journey planner'], ['saved', 'bookmark', 'Saved journeys'], ['network', 'network', 'Transport network']].map(([id, icon, label]) => <button key={id} aria-label={label} className={`nav-item ${tab === id ? 'active' : ''}`} onClick={() => { setTab(id); setMobileMap(false); }}><Icon name={icon}/><span>{label}</span>{id === 'saved' && saved.length > 0 && <b>{saved.length}</b>}{tab === id && <span className="nav-indicator"/>}</button>)}</nav><div className="sidebar-note"><span className="note-icon"><Icon name="shield"/></span><h3>A little certainty.<br />A better journey.</h3><p>Find the way that works for you, every day.</p><div className="note-track"><i /><span /><i /><span /><i /></div></div><div className="sidebar-bottom"><button className="about-button" onClick={() => setModal('about')}><Icon name="info"/> About this prototype <span>↗</span></button><div className="edition"><i className="status-dot"/> BUILDX 0.1 <span>DEMO</span></div></div></aside>
+ <div className="workspace"><header className="topbar"><div className="breadcrumb">Workspace <span>/</span><strong>{tab === 'planner' ? 'Journey planner' : tab === 'saved' ? 'Saved journeys' : 'Transport network'}</strong></div><div className="topbar-actions"><span className="demo-badge"><i className="status-dot"/> Demo data</span><label className="theme-picker"><Icon name="sun" size={18}/><select aria-label="Color theme" value={theme} onChange={e => setTheme(e.target.value)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><span className="avatar">JX</span></div></header>
+ <main><div className="page-heading"><div><div className="eyebrow">LESS GUESSWORK. MORE GOING.</div><h1>{tab === 'planner' ? 'Your next journey, sorted.' : tab === 'saved' ? 'Good routes. Worth keeping.' : 'See the bigger picture.'}</h1><p>{tab === 'planner' ? 'Compare your options. Find your balance. Travel with confidence.' : tab === 'saved' ? 'Your everyday journeys, one step closer. Saved on this device.' : 'Explore the network and see how service changes affect your journey.'}</p></div><span className="city-label"><Icon name="pin" size={16}/> Colombo region</span></div>
+ {tab === 'saved' ? <section className="saved-grid">{saved.length ? saved.map((s, i) => <article className="saved-card" key={`${s.from}-${s.to}-${s.priority}`}><span className="tag"><Icon name="bookmark" size={14}/> {s.priority}</span><h2>{stopName(s.from)} <span>→</span><br />{stopName(s.to)}</h2><p>Fresh estimates with your current demo disruptions.</p><div><button className="primary" onClick={() => { setFrom(s.from); setTo(s.to); setQuery({ from: s.from, to: s.to }); setPriority(s.priority); setTab('planner'); setSelected(null); }}>Plan this journey <Icon name="arrow" size={16}/></button><button className="icon-button" aria-label={`Remove saved journey ${i + 1}`} onClick={() => setSaved(saved.filter((_, n) => n !== i))}><Icon name="close"/></button></div></article>) : <div className="empty-state"><Icon name="bookmark" size={38}/><h2>Your regular routes belong here.</h2><p>Save a journey from the planner to find it again quickly.</p><button className="primary" onClick={() => setTab('planner')}>Find a journey <Icon name="arrow"/></button></div>}</section> : <><div className="planner-grid"><section className="planner-panel">{tab === 'planner' ? <>
+ <form className="search-card" onSubmit={e => { e.preventDefault(); setQuery({ from, to }); setSelected(null); setMobileMap(false); }}><div className="section-title"><h2><Icon name="route"/> Where are we headed?</h2><span>01 — PLAN</span></div><div className="location-inputs"><label><span className="location-dot"/><div><span className="field-label">FROM</span><select aria-label="Starting stop" value={from} onChange={e => setFrom(e.target.value)}>{stops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div></label><button type="button" className="swap-button" aria-label="Swap origin and destination" onClick={() => { setFrom(to); setTo(from); }}><Icon name="swap" size={17}/></button><label><Icon name="pin" size={17}/><div><span className="field-label">TO</span><select aria-label="Destination stop" value={to} onChange={e => setTo(e.target.value)}>{stops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div></label></div><div className="field-row"><span><Icon name="clock" size={16}/> Typical service estimates</span><select aria-label="Transport mode" value={mode} onChange={e => setMode(e.target.value)}><option value="all">Bus + train</option><option value="bus">Bus only</option><option value="train">Train only</option></select></div><p className="input-caption">What matters most to you?</p><div className="priorities">{(['Balanced', 'Fastest', 'Cheapest', 'Reliable'] as Priority[]).map((p, i) => <button key={p} type="button" aria-pressed={priority === p} className={priority === p ? 'chosen' : ''} onClick={() => { setPriority(p); setSelected(null); }}><Icon name={['layers', 'clock', 'wallet', 'shield'][i]} size={17}/>{p}</button>)}</div><button className="primary search-button" type="submit">Find my journey <Icon name="arrow" size={19}/></button></form>
+ <div className="results-heading"><div><h2>Your journey options <span>{journeys.length}</span></h2><p>{stopName(query.from)} → {stopName(query.to)}</p></div><button className="text-button" onClick={() => setModal('compare')} disabled={journeys.length < 2}><Icon name="compare" size={16}/> Compare</button></div><div className="journey-results" aria-live="polite">{!journeys.length ? <div className="empty-state compact"><Icon name="route" size={30}/><h3>{query.from === query.to ? 'You’re already there.' : 'No connection found.'}</h3><p>{query.from === query.to ? 'Choose two different stops to plan a journey.' : 'Try another transport mode or reset the simulated disruptions.'}</p></div> : journeys.map((j, i) => <article className={`journey-card ${active?.id === j.id ? 'selected' : ''}`} key={j.id}><button className="card-select" onClick={() => setSelected(j.id)} aria-pressed={active?.id === j.id}><div className="card-top"><span className={`route-tag ${i === 0 ? 'recommended' : ''}`}>{i === 0 ? '✦  Best for you' : i === 1 ? 'Another way' : 'More to explore'}</span><span className="radio-dot">{active?.id === j.id && <i />}</span></div><div className="journey-metrics"><strong>{j.minutes}<small> min</small></strong><span className="metric-divider"/><span className="fare">LKR <b>{j.fare}</b></span><span className="transfers">{j.transfers === 0 ? 'Direct' : `${j.transfers} transfer${j.transfers > 1 ? 's' : ''}`}</span></div><div className="service-chain">{j.legs.filter((e, n) => n === 0 || e.service !== j.legs[n - 1].service).map((e, n) => <span key={`${e.id}-${n}`}>{n > 0 && <span className="chain-arrow">›</span>}<span className={`service-pill ${e.mode}`}><Icon name={e.mode} size={14}/>{e.service === 'Coastal' ? 'Coastal line' : e.service}</span></span>)}</div><div className="reliability"><span><Icon name="shield" size={14}/>{j.reliability >= 85 ? 'High' : j.reliability >= 65 ? 'Moderate' : 'Low'} reliability</span><span>{j.reliability}<small>/100</small></span></div></button>{i === 0 && <div className="reason"><span>✦</span><p>{reason(j)}</p></div>}<div className="card-footer"><span>Includes estimated waits & fares</span><button onClick={() => { setSelected(j.id); setModal('details'); }}>View journey <Icon name="arrow" size={14}/></button></div></article>)}</div></> : <section className="network-panel"><div className="section-title"><h2><Icon name="network"/> Network overview</h2></div><div className="network-stats"><div><strong>{stops.length}</strong><span>Transport stops</span></div><div><strong>{connections.length}</strong><span>Connections</span></div></div><h3>Try a change in service</h3><p>Simulate a delay or closure. Journey options recalculate automatically.</p><label className="form-field">Connection<select value={edge} onChange={e => setEdge(e.target.value)}>{connections.map(e => <option key={e.id} value={e.id}>{stopName(e.from)} → {stopName(e.to)} · {e.service}</option>)}</select></label><div className="disruption-fields"><label className="form-field">Event<select value={kind} onChange={e => setKind(e.target.value as 'delay' | 'closed')}><option value="delay">Service delay</option><option value="closed">Connection closed</option></select></label>{kind === 'delay' && <label className="form-field">Delay (minutes)<input type="number" min="1" max="120" value={delay} onChange={e => setDelay(Math.min(120, Math.max(1, Number(e.target.value))))}/></label>}</div><button className="primary" onClick={() => { setDisruptions([...disruptions.filter(d => d.edgeId !== edge), { edgeId: edge, kind, delay: kind === 'delay' ? delay : 0 }]); setNotice('Simulation applied. Journey options updated.'); }}>Apply simulation <Icon name="arrow" size={17}/></button><div className="disruption-list"><h3>Active simulations <span>{disruptions.length}</span></h3>{!disruptions.length ? <p className="muted">All simulated services are running normally.</p> : disruptions.map(d => { const e = connections.find(e => e.id === d.edgeId)!; return <div className="disruption" key={d.edgeId}><div><strong>{e.service} · {d.kind === 'closed' ? 'Closed' : `+${d.delay} min`}</strong><p>{stopName(e.from)} → {stopName(e.to)}</p></div><button className="icon-button" aria-label={`Remove simulation for ${e.service}`} onClick={() => setDisruptions(disruptions.filter(v => v.edgeId !== d.edgeId))}><Icon name="close" size={16}/></button></div>; })}{disruptions.length > 0 && <button className="text-button" onClick={() => { setDisruptions([]); setNotice('All simulations reset'); }}>Reset all simulations</button>}</div><button className="secondary" onClick={() => setTab('planner')}>See updated journeys <Icon name="arrow" size={16}/></button></section>}</section>
+ <section className={`map-panel ${mobileMap ? 'mobile-visible' : ''}`}><NetworkMap journey={active} network={tab === 'network'} disruptions={disruptions} onStop={id => { setFrom(query.from); setTo(id); setQuery({ from: query.from, to: id }); setSelected(null); setTab('planner'); setNotice(`Destination changed to ${stopName(id)}`); }}/>{active && <div className="map-summary"><span className="summary-icon"><Icon name="route" size={23}/></span><div><strong>Your journey, at a glance</strong><p>{active.minutes} min <span>·</span> LKR {active.fare} <span>·</span> {active.transfers === 0 ? 'No transfers' : `${active.transfers} transfers`}</p></div><button className={`icon-button ${isSaved ? 'saved' : ''}`} aria-label={isSaved ? 'Unsave journey' : 'Save journey'} aria-pressed={isSaved} onClick={save}><Icon name="bookmark"/></button></div>}</section></div><button className="mobile-map-toggle" onClick={() => setMobileMap(!mobileMap)}><Icon name={mobileMap ? 'route' : 'pin'} size={18}/>{mobileMap ? 'Show journey list' : 'Explore map'}</button><div className="bottom-note"><Icon name="info" size={15}/><span>A little heads-up: fares, travel times, and reliability are simulated for this prototype.</span><button onClick={() => setModal('about')}>How it works ↗</button></div></>}
+ </main><footer><span>JourneyX <span>—</span> A better way to get there.</span><span>Made for the everyday journey <span className="orange">↗</span></span></footer></div>{notice && <div className="toast" role="status"><Icon name="check" size={18}/>{notice}</div>}
+ {modal === 'about' && <Modal title="A clearer way to get there." onClose={() => setModal(null)}><div className="prose"><span className="tag">BUILDX 0.1 · FRONTEND PROTOTYPE</span><p>JourneyX compares public transport journeys around a simulated Colombo network. All data is illustrative, not a live timetable or official fare source.</p><h3>How recommendations work</h3><p>The planner explores simple paths through {stops.length} stops and {connections.length} bidirectional connections. Fastest minimises time, Cheapest minimises fare, and Reliable maximises the modelled score. Balanced combines scaled time (35%), fare (30%), transfer penalties (15%), and reliability penalties (20%).</p><h3>Our demo assumptions</h3><ul><li>Each bus boarding adds 5 minutes of waiting and LKR 25. Train boarding adds 10 minutes and LKR 65.</li><li>Each connection adds travel time and incremental fare. Each change of service adds 3 minutes of transfer time.</li><li>Reliability is a travel-time-weighted service score, reduced by 3 points per transfer and 0.6 points per simulated delay minute. It is not an arrival probability.</li><li>No live traffic, departure schedules, or walking routes are used. The map is a draggable schematic.</li></ul><p>Saved journey preferences and themes stay in this browser. PostgreSQL integration comes later.</p></div></Modal>}
+ {modal === 'compare' && <Modal title="Find your kind of journey." onClose={() => setModal(null)}><p className="muted">{stopName(query.from)} → {stopName(query.to)} · {priority} priority</p><div className="table-scroll"><table><thead><tr><th>At a glance</th>{journeys.map((j, i) => <th key={j.id}>{i === 0 ? 'Recommended' : `Option ${i + 1}`}</th>)}</tr></thead><tbody>{[['Travel time', ...journeys.map(j => `${j.minutes} min`)], ['Estimated fare', ...journeys.map(j => `LKR ${j.fare}`)], ['Transfers', ...journeys.map(j => j.transfers)], ['Reliability score', ...journeys.map(j => `${j.reliability}/100`)]].map(row => <tr key={row[0]}>{row.map((v, i) => <td key={i}>{v}</td>)}</tr>)}<tr><td>Take a closer look</td>{journeys.map(j => <td key={j.id}><button className="text-button" onClick={() => { setSelected(j.id); setModal('details'); }}>View route →</button></td>)}</tr></tbody></table></div><p className="comparison-note"><Icon name="info" size={16}/> Estimates include waiting and transfers. Reliability is a modelled score.</p></Modal>}
+ {modal === 'details' && active && <Modal title="Your journey, step by step." onClose={() => setModal(null)}><div className="detail-summary"><div><span className="eyebrow">{stopName(query.from)} → {stopName(query.to)}</span><h3>{active.minutes} min <span>·</span> LKR {active.fare}</h3></div><button className={`secondary ${isSaved ? 'saved' : ''}`} onClick={save}><Icon name="bookmark" size={16}/>{isSaved ? 'Saved' : 'Save'}</button></div><div className="detail-reason"><Icon name="shield"/>{active.id === journeys[0]?.id ? reason(active) : `Alternative option: ${active.minutes} minutes, LKR ${active.fare}, and a reliability score of ${active.reliability}/100.`}</div><ol className="timeline">{active.legs.map((e, i) => { const boarding = i === 0 || active.legs[i - 1].service !== e.service, d = disruptions.find(d => d.edgeId === e.id); return <li key={`${e.id}-${i}`}><span className="timeline-dot"/><div><strong>{stopName(active.nodes[i])}</strong>{boarding && <p className="boarding"><Icon name={e.mode} size={15}/>{i > 0 ? 'Transfer to' : 'Board'} {e.mode === 'train' ? 'Coastal line' : `bus ${e.service}`} · {e.mode === 'train' ? 10 : 5} min wait{i > 0 ? ' + 3 min transfer' : ''}</p>}<p>{e.minutes + (d?.delay ?? 0)} min ride to {stopName(active.nodes[i + 1])}{d && <span className="delay-label"> (includes {d.delay} min delay)</span>}</p></div></li>; })}<li><span className="timeline-dot arrival"/><div><strong>{stopName(query.to)}</strong><p>You’ve arrived. Enjoy the rest of your day.</p></div></li></ol><p className="muted">Illustrative fares and services. Confirm actual departures before travel.</p></Modal>}
+ </div>;
 }

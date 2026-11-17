@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JourneyX
 
-## Getting Started
+A Next.js frontend for BuildX Challenge 04: public transport reliability and journey planning. Sunset orange and navy, responsive layouts, and Light / Dark / System themes. No database or API keys are required.
 
-First, run the development server:
+## Run
 
-```bash
+From this directory:
+
+```sh
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. For a production build, run `npm run build` and `npm start`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Origin/destination selection and swapping, bus/train filters, four ranking priorities.
+- Three alternative journeys where available; estimated fares, duration, transfers, reliability, comparison table, and boarding timeline.
+- Draggable and zoomable schematic network, stop labels, destination selector, mobile list/map switch.
+- Saved journey preferences and theme persisted in localStorage.
+- Delay and closure simulation, individual removal, and reset.
+- Same-stop and disconnected-route states; keyboard controls and native modal dialogs.
 
-## Learn More
+## Data and computation
 
-To learn more about Next.js, take a look at the following resources:
+`lib/network.ts` owns the typed demo network and pure route-search function. The UI lives in `app/page.tsx`, shared visual components in `app/components.tsx`, and theme/responsive styles in `app/globals.css`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The simulated Colombo network contains 16 stops and 27 bidirectional connections. All times, fares, services, and reliability values are illustrative. The SVG map is schematic, not a geographic navigation map. No external map service is needed.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The demo enumerates simple paths, then ranks them. Fastest minimises time; Cheapest minimises fare; Reliable maximises the modelled reliability score. Balanced weighs time relative to the fastest available journey (35%), fare relative to the cheapest (30%), transfers (15%), and reliability penalty (20%). These weights apply to scaled terms, not calibrated arrival probabilities.
 
-## Deploy on Vercel
+Each boarding adds a waiting time (bus: 5 minutes, train: 10) and base fare (bus: LKR 25, train: LKR 65). Connections add incremental fares and ride times. A service change adds 3 minutes. Reliability is a travel-time-weighted service score minus 3 per transfer and 0.6 per delay minute, floored at 10.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Exhaustive search is appropriate only for this small graph. A larger network should use a bounded, multi-criteria shortest-path algorithm with service state and timetable-aware transfers.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validation
+
+With Node.js 24:
+
+```sh
+node --experimental-strip-types --test tests/network.test.mjs
+npm run build
+```
+
+Tests cover all 240 distinct stop pairs, fare/wait totals, priority differences, closures, delays, invalid input, disconnected routes, and loop prevention.
+
+## Next stage
+
+Add PostgreSQL-backed stops, services, connections, fares, and disruption records through a data-access boundary. Keep the UI models stable, move routing to the server, and replace demo assumptions with validated data. No Django service is required by this frontend.
+
+## Limitations
+
+No real-time tracking, actual departure schedules, walking directions, authentication, or backend persistence. Saved items are journey preferences, not tickets or fixed itinerary snapshots. Simulations reset on page reload. Visual browser QA could not run in the current automation environment; production compilation and routing tests passed.
