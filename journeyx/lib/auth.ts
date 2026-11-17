@@ -1,17 +1,23 @@
 import { cookies } from 'next/headers';
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { db } from './db';
+import type { PrismaClient } from '@prisma/client';
+async function getDb() {
+ const { db } = await import('./db');
+ return db as PrismaClient;
+}
 export const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 export function hashPassword(value: string) { const salt = randomBytes(16).toString('hex'); return salt + ':' + scryptSync(value, salt, 64).toString('hex'); }
 export function verifyPassword(value: string, encoded: string) { const [salt, hash] = encoded.split(':'); const expected = Buffer.from(hash, 'hex'); const actual = scryptSync(value, salt, 64); return expected.length === actual.length && timingSafeEqual(expected, actual); }
 export async function currentUser() {
  if (!process.env.DATABASE_URL) return null;
+ const db = await getDb();
  const token = (await cookies()).get('journeyx-session')?.value;
  if (!token) return null;
  const session = await db.session.findUnique({ where: { tokenHash: digest(token) }, include: { user: true } });
  return session && session.expiresAt > new Date() ? session.user : null;
 }
 export async function createSession(userId: string) {
+ const db = await getDb();
  const jar = await cookies(); const old = jar.get('journeyx-session')?.value;
  if (old) await db.session.deleteMany({ where: { tokenHash: digest(old) } });
  const token = randomBytes(32).toString('hex'); const expires = new Date(Date.now() + 7*86400000);
