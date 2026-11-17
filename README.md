@@ -51,7 +51,7 @@ The following maps Challenge 04's functional requirements and MVP criteria to th
 | Maintain stops and connections | 19 stop areas and 26 connections in the bundled dataset |
 | Select start and destination | Stop selectors and a swap control |
 | Generate multiple journeys | Up to three distinct paths where available |
-| Calculate estimated costs | Boarding fares and incremental connection fares |
+| Calculate estimated costs | Per-ride planning minimum and subsequent connection increments |
 | Estimate journey durations | Ride times, waits, transfers, and simulated delays |
 | Compare transfers and reliability | Journey cards and comparison table |
 | Rank alternatives | Four priority presets and weighted scoring |
@@ -117,7 +117,7 @@ For each candidate journey, the implementation calculates:
 - **Boardings:** the first service plus each subsequent service change.
 - **Transfers:** boardings minus one.
 - **Duration:** summed ride times + 5 minutes per boarding + 3 minutes per transfer + simulated delays.
-- **Fare:** summed incremental connection fares + LKR 25 per boarding.
+- **Fare:** LKR 35 planning minimum per continuous bus ride (covering its first connection), plus simulated increments for subsequent connections on the same service. A transfer starts a new minimum fare. This is not an official stage-based fare calculation.
 - **Reliability:** travel-time-weighted service reliability, minus 3 points per transfer and 0.6 points per delay minute, rounded and floored at 10.
 
 Balanced ranking uses this score, with lower values ranked first:
@@ -222,11 +222,11 @@ Coordinates identify approximate stop areas. Dashed map lines connect those area
 Run the automated tests and production build from journeyx:
 
 ~~~powershell
-node --experimental-strip-types --test tests/network.test.mjs
+node --experimental-strip-types --test tests/*.test.mjs
 npm run build
 ~~~
 
-The five route tests cover all 342 ordered pairs of distinct stops, loop prevention, fare and waiting-time totals, differences between priorities, delays, closures, invalid input, same-stop input, and disconnected searches.
+The route tests cover all 342 ordered pairs of distinct stops, loop prevention, fare and waiting-time totals, differences between priorities, delays, closures, invalid input, same-stop input, and disconnected searches.
 
 Development checks have also exercised assistant questions about Kaduwela, spelling aliases, reverse journeys, follow-up fares, bus numbers, and closures. Browser checks verified mobile chat wrapping at 360 px, loaded street tiles, and location movement and cleanup using simulated browser coordinates. Supabase migration status and read access to account, session, and saved-journey tables have been verified.
 
@@ -276,3 +276,16 @@ The presentation should cover the problem and significance, proposed solution, a
 The evaluation allocates 25 marks to problem-solving, 25 to technical complexity and engineering, 20 to functionality, 15 to innovation, 10 to technical defence, and 5 to presentation.
 
 Prepared against the BuildX 0.1 Challenges Handbook, Challenge 04 on pages 11–12 and general development, submission, rules, and evaluation guidance on pages 25–31.
+
+
+### Map selection, current-location boarding, and emergency SMS
+
+- Choose **From** or **To** and double-click/double-tap the map to set a pin. Start selection automatically switches to destination. **Use map centre** supports touch and keyboard navigation; bus-area selectors remain available as an accessible fallback.
+- **Board from my current location** requests a fresh browser location fix. Each endpoint matches the nearest covered bus area within 2 km. An endpoint outside that radius produces an explicit coverage message and no fabricated route. Poor location accuracy (over 1 km) is rejected for boarding selection.
+- Blue/orange pins show the selected points. Connectors to bus areas are straight-line distances, not walking routes. Bus journey times and fares exclude travel between the pins and bus areas. Saved journeys retain matched stop IDs, not coordinates.
+- The emergency icon beside the top-left logo opens a dialog for a phone number. **Prepare location SMS** obtains fresh coordinates, accuracy, capture time, and a Google Maps link. **Open SMS app** opens the device's SMS composer; the user must tap Send. There is no automatic server-side SMS or delivery confirmation. Desktop users can copy the message. Neither the phone number nor location is stored by JourneyX.
+- The floating assistant launcher uses a chat symbol with an accessible name and tooltip.
+
+**Fare verification (17 November 2026):** The [6 July 2026 fare revision report](https://www.newswire.lk/2026/07/06/bus-fare-hike-effective-from-today/) reports a normal-service minimum of **LKR 34**. The requested **LKR 35** is used as a rounded *planning baseline*, not presented as the official minimum. These values and source/date metadata live in `farePolicy` in `journeyx/lib/network.ts`. Route-specific fare stages remain unverified; journey fares remain simulated. The About dialog and assistant distinguish the published minimum from the planning baseline.
+
+Location/SMS tests cover nearest-area matching, the coverage boundary, invalid coordinates, local/international phone validation, encoded SMS payloads, and location errors. No SMS is sent by automated tests. Confirm the final composer handoff on a physical Android/iPhone, since SMS-handler support depends on the device and installed app.
