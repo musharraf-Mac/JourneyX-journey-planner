@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { findJourneys, connections, stops } from '../lib/network.ts';
 
-test('direct bus totals include a single boarding fee and wait', () => {
+test('direct bus totals include one minimum fare, subsequent increments and wait', () => {
   const [route] = findJourneys('fort', 'mount', 'Fastest', []);
   assert.equal(route.minutes, 52);
-  assert.equal(route.fare, 95);
+  assert.equal(route.fare, 93);
   assert.equal(route.transfers, 0);
   assert.equal(route.reliability, 85);
 });
@@ -47,6 +47,20 @@ test('all distinct bus stop pairs connect without loops or broken legs', () => {
         assert([leg.from, leg.to].includes(route.nodes[i]));
         assert([leg.from, leg.to].includes(route.nodes[i + 1]));
       });
+    }
+  }
+});
+
+
+test('short rides use the LKR 35 planning minimum; each new service starts a new fare', () => {
+  const [short] = findJourneys('fort', 'pettah', 'Fastest', []);
+  assert.equal(short.fare, 35);
+  const [transfer] = findJourneys('wellawatte', 'narahenpita', 'Fastest', []);
+  assert.equal(transfer.transfers, 1);
+  assert.equal(transfer.fare, 78); // Two rides at 35, plus one subsequent connection at 8.
+  for (const from of stops) for (const to of stops) {
+    for (const journey of findJourneys(from.id, to.id, 'Cheapest', [])) {
+      assert(journey.fare >= 35 * (journey.transfers + 1));
     }
   }
 });

@@ -24,6 +24,16 @@ export const busRouteSources: Readonly<Partial<Record<string, string>>> = {
     '177': 'https://routemaster.lk/bus/177/',
 };
 
+// Published minimum and the requested rounded planning baseline are distinct.
+// We do not have verified route-specific fare stages; totals remain estimates.
+export const farePolicy = {
+    reportedMinimum: 34,
+    planningMinimum: 35,
+    effectiveDate: '2026-07-06',
+    checkedDate: '2026-11-17',
+    source: 'https://www.newswire.lk/2026/07/06/bus-fare-hike-effective-from-today/',
+} as const;
+
 const rows: [
     string,
     string,
@@ -71,7 +81,10 @@ export function findJourneys(from: string, to: string, priority: Priority, disru
             const delays = legs.reduce((sum, e) => sum + (disruptions.find(d => d.edgeId === e.id)?.delay ?? 0), 0);
             const ride = legs.reduce((sum, e) => sum + e.minutes, 0);
             const minutes = ride + boardings.length * 5 + transfers * 3 + delays;
-            const fare = legs.reduce((sum, e) => sum + e.fare, 0) + boardings.length * 25;
+            // The first connection is covered by each ride's minimum estimate.
+            // Staying on that service adds simulated increments; a transfer starts a new fare.
+            const fare = legs.reduce((sum, e, i) => sum + (i === 0 || e.service !== legs[i - 1].service
+                ? farePolicy.planningMinimum : e.fare), 0);
             const reliability = Math.max(10, Math.round(legs.reduce((sum, e) => sum + e.reliability * e.minutes, 0) / ride - transfers * 3 - delays * .6));
             result.push({ id: legs.map(e => e.id).join('-'), nodes, legs, minutes, fare, transfers, reliability, score: 0 });
             return;
