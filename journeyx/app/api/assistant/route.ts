@@ -3,7 +3,7 @@ import { answerBusQuestion } from '@/lib/bus-assistant';
 import { connections, stops, type Disruption, type Priority } from '@/lib/network';
 
 const priorities: Priority[] = ['Balanced', 'Fastest', 'Cheapest', 'Reliable'];
-const help = 'Select two stops in the bus planner, or ask me directly, for example “from Kaduwela to Kollupitiya”. Use Track my location on the map to follow your position. Sign in to save a journey.';
+const help = 'Pick start and destination on the map by double-clicking, or use the covered bus-area selectors, or ask me directly, for example “from Kaduwela to Kollupitiya”. Use Board from my current location to match your position to a covered bus area within 2 km. Use Track my location on the map to follow your position. Map connectors are straight lines, not walking routes. The emergency icon beside the logo prepares a location SMS to a phone number you enter; you must tap Send in your SMS app. Sign in to save a journey.';
 
 export async function POST(request: Request) {
     if (!sameOrigin(request)) return Response.json({ error: 'Invalid origin' }, { status: 403 });

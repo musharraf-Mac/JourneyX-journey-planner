@@ -1,4 +1,4 @@
-import { busRouteSources, connections, findJourneys, stopName, stops, type Disruption, type Priority } from './network';
+import { busRouteSources, farePolicy, connections, findJourneys, stopName, stops, type Disruption, type Priority } from './network';
 
 type TripQuery = { from: string; to: string; priority: Priority };
 
@@ -60,6 +60,10 @@ const reference = (service: string) => busRouteSources[service]
     : '';
 
 export function answerBusQuestion(message: string, history: string[], current: TripQuery, disruptions: Disruption[]) {
+    if (/\b(minimum|base fare|starting fare)\b/i.test(message) && /\b(fare|fee|cost|bus|35|34)\b/i.test(message)) {
+        return `JourneyX uses LKR ${farePolicy.planningMinimum} as a rounded planning minimum for each continuous bus ride. The ${farePolicy.effectiveDate} revision reports LKR ${farePolicy.reportedMinimum} for normal services. These are different: our journey totals are estimates, not official route-specific fares. Source: ${farePolicy.source}`;
+    }
+    if (/\b(emergency|sms|double.?click|double.?tap|map pin|current location|location permission)\b/i.test(message)) return null;
     const earlierTrip = [...history].reverse().map(tripFromText).find(pair => pair?.from && pair.to);
     const context = earlierTrip?.from && earlierTrip.to && !/\b(current|selected|planner)\b/i.test(message)
         ? { ...current, from: earlierTrip.from, to: earlierTrip.to }
