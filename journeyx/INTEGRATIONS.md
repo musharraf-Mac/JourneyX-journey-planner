@@ -17,9 +17,9 @@ Guests can search and compare without authentication. Saving uses authenticated 
 
 Email verification, password recovery, and distributed rate limiting are deployment follow-ups. Current throttles are per server process and reset on restart. Do not treat this as a completed production identity system.
 
-## OpenAI
+## Groq
 
-Set OPENAI_API_KEY and OPENAI_MODEL in .env to a model available to your account. The key stays server-side. The assistant uses the Responses API with store:false and bounded output. No account credentials are sent to OpenAI. Questions and computed demo journey summaries are sent to OpenAI. The assistant is stateless and does not save chats. It recomputes the selected journey with validated mode and disruption inputs. Missing credentials produce a clear unavailable state, never a fake AI response.
+Set GROQ_API in .env. The key stays server-side. The assistant uses Groq's OpenAI-compatible chat completions API with bounded output. No account credentials are sent to Groq. Questions and computed demo journey summaries are sent to Groq. The assistant is stateless and does not save chats. It recomputes the selected journey with validated mode and disruption inputs. Missing credentials produce a clear unavailable state, never a fake AI response.
 
 ## Actual transport: verified source discovery, not an imported live feed
 

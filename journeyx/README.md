@@ -1,6 +1,6 @@
 # JourneyX
 
-A Next.js frontend for BuildX Challenge 04: public transport reliability and journey planning. Sunset orange and navy, responsive layouts, and Light / Dark / System themes. Guest demo planning needs no database. Accounts and saved journeys require PostgreSQL; the assistant requires OpenAI credentials. See INTEGRATIONS.md.
+A Next.js frontend for BuildX Challenge 04: public transport reliability and journey planning. Sunset orange and navy, responsive layouts, and Light / Dark / System themes. Guest demo planning needs no database. Accounts and saved journeys require PostgreSQL; the assistant requires Groq credentials. See INTEGRATIONS.md.
 
 ## Run
 
