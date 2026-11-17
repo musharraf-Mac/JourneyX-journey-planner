@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { LayerGroup, Map as LeafletMap } from 'leaflet';
+import type { LayerGroup, Map as LeafletMap, LeafletMouseEvent } from 'leaflet';
 import { connections, stops, type Disruption, type Journey } from '@/lib/network';
+import type { Point, SelectedPlace } from '@/lib/location';
 import { Icon } from './components';
 
 type MapInstance = {
@@ -10,17 +11,22 @@ type MapInstance = {
     leaflet: typeof import('leaflet');
     routes: LayerGroup;
     location: LayerGroup;
+    selections: LayerGroup;
 };
 
 const coordinates = stops.map(({ lat, lng }): [number, number] => [lat, lng]);
 const stopCoordinates = new Map(stops.map((stop, index) => [stop.id, coordinates[index]]));
 const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-export function NetworkMap({ journey, network, disruptions, onStop }: {
+export function NetworkMap({ journey, network, disruptions, fromPlace, toPlace, pickMode, onPickMode, onPick }: {
     journey?: Journey;
     network: boolean;
     disruptions: Disruption[];
-    onStop: (id: string) => void;
+    fromPlace: SelectedPlace;
+    toPlace: SelectedPlace;
+    pickMode: 'from' | 'to';
+    onPickMode: (mode: 'from' | 'to') => void;
+    onPick: (point: Point, mode: 'from' | 'to') => void;
 }) {
     const canvas = useRef<HTMLDivElement>(null);
     const watchId = useRef<number | null>(null);
@@ -38,7 +44,7 @@ export function NetworkMap({ journey, network, disruptions, onStop }: {
             const container = canvas.current;
             if (cancelled || !container) return;
 
-            const current = leaflet.map(container, { scrollWheelZoom: false });
+            const current = leaflet.map(container, { scrollWheelZoom: false, doubleClickZoom: false });
             map = current;
             current.setView([6.91, 79.9], 12);
             current.attributionControl.setPrefix(false);
@@ -65,6 +71,7 @@ export function NetworkMap({ journey, network, disruptions, onStop }: {
                 leaflet,
                 routes: leaflet.layerGroup().addTo(current),
                 location: leaflet.layerGroup().addTo(current),
+                selections: leaflet.layerGroup().addTo(current),
             });
         }
         initialize().catch(() => {
@@ -78,6 +85,39 @@ export function NetworkMap({ journey, network, disruptions, onStop }: {
             map?.remove();
         };
     }, []);
+
+    useEffect(() => {
+        if (!instance) return;
+        const pick = (event: LeafletMouseEvent) => {
+            // Stop following so a subsequent GPS update cannot move the map while selecting.
+            if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current);
+            watchId.current = null;
+            instance.location.clearLayers();
+            setTracking(false);
+            setLocationStatus('');
+            const point = event.latlng.wrap();
+            onPick({ lat: point.lat, lng: point.lng }, pickMode);
+        };
+        instance.map.on('dblclick', pick);
+        return () => { instance.map.off('dblclick', pick); };
+    }, [instance, onPick, pickMode]);
+
+    useEffect(() => {
+        if (!instance) return;
+        const { leaflet, selections, map } = instance;
+        selections.clearLayers();
+        for (const [label, place, color] of [['Start', fromPlace, '#2365cf'], ['Destination', toPlace, '#ce4f1b']] as const) {
+            const point: [number, number] = [place.lat, place.lng];
+            leaflet.circleMarker(point, { radius: 10, color, fillColor: color, fillOpacity: 0.8, weight: 3 })
+                .bindTooltip(`${label}${place.stopId ? ` · ${stops.find(s => s.id === place.stopId)?.name}` : ' · Outside coverage'}`, { permanent: true, direction: 'top' }).addTo(selections);
+            const stop = stopCoordinates.get(place.stopId ?? '');
+            if (stop && place.distance > 30) {
+                leaflet.polyline([point, stop], { color, weight: 2, dashArray: '3 6' })
+                    .bindTooltip('Straight-line distance to covered area; not a walking route').addTo(selections);
+            }
+        }
+        map.fitBounds([[fromPlace.lat, fromPlace.lng], [toPlace.lat, toPlace.lng]], { padding: [42, 42], maxZoom: 15 });
+    }, [instance, fromPlace, toPlace]);
 
     useEffect(() => {
         if (!instance) return;
@@ -159,6 +199,17 @@ export function NetworkMap({ journey, network, disruptions, onStop }: {
     }
 
     return <div className="street-map">
+        <div className="map-picking" role="group" aria-label="Map selection">
+            <button className="secondary" type="button" aria-pressed={pickMode === 'from'} onClick={() => onPickMode('from')}>1 · Pick start</button>
+            <button className="secondary" type="button" aria-pressed={pickMode === 'to'} onClick={() => onPickMode('to')}>2 · Pick destination</button>
+            <p>Double-click or double-tap to set your {pickMode === 'from' ? 'start' : 'destination'}. On touch or keyboard, move the map and use its centre.</p>
+            <button className="text-button" type="button" disabled={!instance} onClick={() => {
+                if (!instance) return;
+                if (tracking) stopTracking();
+                const centre = instance.map.getCenter().wrap();
+                onPick({ lat: centre.lat, lng: centre.lng }, pickMode);
+            }}>Use map centre as {pickMode === 'from' ? 'start' : 'destination'}</button>
+        </div>
         <div className="street-map-tools">
             <button type="button" className="secondary" disabled={!instance} onClick={fitRoute}>
                 <Icon name="route" size={16}/> {journey ? 'Show bus route' : 'Show network'}
@@ -168,17 +219,18 @@ export function NetworkMap({ journey, network, disruptions, onStop }: {
                 <Icon name="pin" size={16}/> {tracking ? 'Stop tracking' : 'Track my location'}
             </button>
         </div>
-        <div className="map street-map-canvas" ref={canvas} role="region" aria-label="Colombo bus street map"/>
+        <div className="map-canvas-wrap"><div className="map street-map-canvas" ref={canvas} role="region" aria-label="Colombo bus street map"/><span className="map-crosshair" aria-hidden="true">+</span></div>
         <div className="street-map-info">
+            <div className="map-selected-places" aria-live="polite">
+                {([['Start', fromPlace], ['Destination', toPlace]] as const).map(([label, place]) => <p key={label}>
+                    <strong>{label}:</strong> {place.stopId ? stops.find(stop => stop.id === place.stopId)?.name : 'Outside current coverage — no covered bus area within 2 km'}
+                    {place.stopId && place.distance > 30 ? ` · ${Math.round(place.distance)} m straight-line from pin` : ''}
+                </p>)}
+            </div>
             {mapStatus && <p role="status">{mapStatus}</p>}
             {locationStatus && <p role="status">{locationStatus}</p>}
             <p>Dashed lines connect approximate bus stop areas.</p>
-            <label className="map-destination">Choose a destination
-                <select value="" onChange={event => onStop(event.target.value)}>
-                    <option value="" disabled>Select a bus stop</option>
-                    {stops.map(stop => <option key={stop.id} value={stop.id}>{stop.name}</option>)}
-                </select>
-            </label>
+            <p>Pins connect to the nearest covered area within 2 km. Dotted connectors are straight-line distances, not walking directions. Coverage remains limited to the listed bus network.</p>
         </div>
     </div>;
 }
