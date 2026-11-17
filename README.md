@@ -9,23 +9,18 @@ JourneyX is a bus journey planner developed by **Cortex Crew** for **BuildX 0.1 
 | Detail | Value |
 | --- | --- |
 | Team name | Cortex Crew |
-| Official team identifier | [Add organiser-assigned team ID] |
-| Institution | [Add institution / university] |
-| Team leader | [Your full name] |
-| Repository | [Add private GitHub repository link] |
-| Application demo | [Add deployed URL, or use the local setup below] |
-| Presentation | [Add presentation link] |
+| Institution | Horizon Campus |
+| Team leader | Musharraf |
+| Application demo | https://journey-x-journey-planner.vercel.app/ |
 
 Replace the placeholders before submission. Add the originally registered team members and remove unused optional rows.
 
-| Role | Full name | Student / registration ID | Contributions | GitHub profile |
-| --- | --- | --- | --- | --- |
-| Team leader | [Your full name] | [Your student ID] | [Your responsibilities] | [Your GitHub URL] |
-| Member 2 | [Full name] | [Student ID] | [Responsibilities] | [GitHub URL] |
-| Member 3 | [Full name] | [Student ID] | [Responsibilities] | [GitHub URL] |
-| Member 4 | [Full name] | [Student ID] | [Responsibilities] | [GitHub URL] |
-| Member 5, if registered | [Full name] | [Student ID] | [Responsibilities] | [GitHub URL] |
-| Member 6, if registered | [Full name] | [Student ID] | [Responsibilities] | [GitHub URL] |
+| Role | Full name | Student / registration ID | GitHub profile |
+| --- | --- | --- | --- |
+| Team leader | MRAR.Musharraf | ITBIN-2313-0067 | https://github.com/musharraf-Mac |
+| Member 2 | S.Niroshini | ITBIN-2313-0074 | https://github.com/Niroshini2002 |
+| Member 3 | T. Devanivethitha | ITBIN-2313-0075 | https://github.com/Deva-0907 |
+| Member 4 | T. Thusanthani | ITBIN-2211-0305 | https://github.com/thushathusha310-cyber |
 
 ## Problem being addressed
 
