@@ -19,7 +19,7 @@ Email verification, password recovery, and distributed rate limiting are deploym
 
 ## Groq
 
-Set GROQ_API in .env. The key stays server-side. The assistant uses Groq's OpenAI-compatible chat completions API with bounded output. No account credentials are sent to Groq. Questions and computed demo journey summaries are sent to Groq. The assistant is stateless and does not save chats. It recomputes the selected journey with validated mode and disruption inputs. Missing credentials produce a clear unavailable state, never a fake AI response.
+Set GROQ_API in .env. The default model is openai/gpt-oss-20b, served by Groq. Set GROQ_MODEL to use another chat model available to your Groq account. The key stays server-side. The assistant uses Groq's OpenAI-compatible chat completions API with bounded output. No account credentials are sent to Groq. Questions and computed demo journey summaries are sent to Groq. The assistant is stateless and does not save chats. It recomputes the selected journey with validated mode and disruption inputs. Missing credentials produce a clear unavailable state, never a fake AI response.
 
 ## Actual transport: verified source discovery, not an imported live feed
 
