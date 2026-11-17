@@ -1,6 +1,6 @@
 # JourneyX
 
-A Next.js frontend for BuildX Challenge 04: public transport reliability and journey planning. Sunset orange and navy, responsive layouts, and Light / Dark / System themes. No database or API keys are required.
+A Next.js frontend for BuildX Challenge 04: public transport reliability and journey planning. Sunset orange and navy, responsive layouts, and Light / Dark / System themes. Guest demo planning needs no database. Accounts and saved journeys require PostgreSQL; the assistant requires OpenAI credentials. See INTEGRATIONS.md.
 
 ## Run
 
@@ -18,7 +18,7 @@ Open http://localhost:3000. For a production build, run `npm run build` and `npm
 - Origin/destination selection and swapping, bus/train filters, four ranking priorities.
 - Three alternative journeys where available; estimated fares, duration, transfers, reliability, comparison table, and boarding timeline.
 - Draggable and zoomable schematic network, stop labels, destination selector, mobile list/map switch.
-- Saved journey preferences and theme persisted in localStorage.
+- Account-owned journeys persisted in PostgreSQL; theme persisted in localStorage.
 - Delay and closure simulation, individual removal, and reset.
 - Same-stop and disconnected-route states; keyboard controls and native modal dialogs.
 
@@ -51,4 +51,4 @@ Add PostgreSQL-backed stops, services, connections, fares, and disruption record
 
 ## Limitations
 
-No real-time tracking, actual departure schedules, walking directions, authentication, or backend persistence. Saved items are journey preferences, not tickets or fixed itinerary snapshots. Simulations reset on page reload. Visual browser QA could not run in the current automation environment; production compilation and routing tests passed.
+No real-time tracking, verified departure schedules, or actual walking directions yet. Account endpoints and database-backed saves are implemented but require configured PostgreSQL. Saved items are journey preferences, not tickets or fixed itinerary snapshots. Simulations reset on page reload. Visual browser QA could not run in the current automation environment; production compilation and routing tests passed.
