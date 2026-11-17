@@ -105,7 +105,7 @@ option {
 .brand-x {
   color:var(--orange)}
 .workspace-label {
-  font-size:12px;
+  font-size:11px;
   letter-spacing:1.7px;
   color:var(--muted);
   padding:19px 12px 35px;
@@ -548,9 +548,6 @@ h1 {
   background:var(--bg);
   font-size:10px;
   font-weight:600}
-.service-pill.train {
-  background:var(--green-soft);
-  color:var(--green)}
 .chain-arrow {
   color:var(--muted)}
 .reliability {
@@ -610,131 +607,6 @@ h1 {
   height:747px;
   overflow:hidden;
   background:var(--map-land)}
-.map-canvas {
-  width:100%;
-  height:100%;
-  touch-action:none;
-  cursor:grab}
-.map-canvas:active {
-  cursor:grabbing}
-.map-land {
-  fill:var(--map-land)}
-.map-block {
-  fill:var(--map-block)}
-.map-street {
-  stroke:var(--map-street)}
-.map-sea {
-  fill:var(--sea)}
-.map-park {
-  fill:var(--park)}
-.major-roads {
-  stroke:var(--map-street)}
-.district-label {
-  font-size:11px;
-  letter-spacing:2.7px;
-  fill:#8f9d98}
-.ocean-label {
-  font-size:13px;
-  letter-spacing:5px;
-  fill:#729493}
-.stop-label {
-  font-size:13px;
-  fill:var(--muted);
-  paint-order:stroke;
-  stroke:var(--map-land);
-  stroke-width:4px;
-  font-weight:500}
-.selected-label {
-  fill:var(--text);
-  font-weight:700}
-.map-heading {
-  position:absolute;
-  top:18px;
-  left:18px;
-  background:var(--surface);
-  padding:11px 13px;
-  border-radius:7px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-  font-size:10px;
-  box-shadow:var(--shadow)}
-.map-chip {
-  padding-left:9px;
-  border-left:1px solid var(--border);
-  color:var(--muted);
-  font-size:9px}
-.map-controls {
-  position:absolute;
-  right:17px;
-  top:18px;
-  display:flex;
-  flex-direction:column;
-  background:var(--surface);
-  box-shadow:var(--shadow);
-  border-radius:7px;
-  overflow:hidden}
-.map-controls button {
-  background:transparent;
-  border:0;
-  border-bottom:1px solid var(--border);
-  height:35px;
-  width:35px;
-  display:grid;
-  place-items:center}
-.map-controls button:last-child {
-  border:0}
-.map-bottom {
-  position:absolute;
-  bottom:15px;
-  left:18px;
-  right:18px;
-  pointer-events:none}
-.map-legend {
-  display:inline-flex;
-  gap:14px;
-  padding:10px;
-  background:var(--surface);
-  border-radius:6px;
-  font-size:9px;
-  box-shadow:var(--shadow)}
-.map-legend span {
-  display:flex;
-  align-items:center;
-  gap:5px}
-.map-legend i {
-  width:15px;
-  height:3px;
-  background:var(--orange);
-  border-radius:2px}
-.map-legend .rail {
-  background:transparent;
-  border-top:2px dashed #8496ab}
-.map-legend .busline {
-  background:#b2bdc5}
-.map-bottom small {
-  display:block;
-  font-size:9px;
-  color:var(--muted);
-  margin-top:10px;
-  text-shadow:0 0 5px var(--surface)}
-.map-stop {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  padding:10px;
-  background:var(--surface);
-  border-radius:6px;
-  font-size:10px;
-  margin-top:8px;
-  pointer-events:auto;
-  max-width:310px}
-.map-stop select {
-  background:transparent;
-  border:0;
-  font-size:10px;
-  max-width:175px}
 .map-summary {
   padding:20px;
   display:flex;
@@ -990,10 +862,12 @@ dialog::backdrop {
   margin-bottom:16px}
 .assistant-chat {
   max-height:430px;
-  overflow:auto;
+  min-width:0;
+  overflow-y:auto;
   padding:4px 3px 4px 0;
   scroll-behavior:smooth}
 .assistant-message {
+  min-width:0;
   max-width:92%;
   margin:0 0 16px;
   padding:12px 14px;
@@ -1031,17 +905,30 @@ dialog::backdrop {
 .assistant-bullet {
   display:flex;
   gap:8px}
-.assistant-bullet>span {
+.assistant-bullet-marker {
   color:var(--orange);
-  flex:none}
+  flex:0 0 auto;
+}
+.assistant-bullet-text {
+  flex:1 1 auto;
+  min-width:0;
+}
+.assistant-content, .assistant-content a, .assistant-message > p {
+  overflow-wrap:anywhere;
+}
+.assistant-content a {
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
 .assistant-data-row {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(min(100%, 90px),1fr));
   gap:8px;
   padding:6px 0;
   border-bottom:1px solid var(--border);
   font-size:12px}
 .assistant-data-row span {
+  min-width:0;
   overflow-wrap:anywhere}
 .assistant-typing span {
   animation:assistant-dot 1.2s infinite}
@@ -1230,11 +1117,6 @@ main {
   display:none}
 .map {
   height:730px}
-.map-chip {
-  display:none}
-.map-heading {
-  left:10px;
-  font-size:9px}
 .map-summary {
   padding:15px;
   gap:8px}
@@ -1274,15 +1156,6 @@ main {
   gap:12px}
 h1 {
   font-size:30px}
-.map-legend {
-  gap:7px;
-  font-size:8px}
-.map-stop {
-  display:block}
-.map-stop select {
-  display:block;
-  margin-top:8px;
-  width:100%}
 .map-summary>.summary-icon {
   display:none}
 }
@@ -1371,26 +1244,12 @@ h1 {
   display:block}
 .map {
   height:600px}
-.map-chip {
-  display:inline}
-.map-heading {
-  left:15px;
-  font-size:10px}
 .map-summary>.summary-icon {
   display:grid}
 .map-summary strong {
   font-size:14px}
 .map-summary p {
   font-size:11px}
-.map-legend {
-  font-size:10px;
-  gap:12px}
-.map-stop {
-  display:flex}
-.map-stop select {
-  display:inline;
-  margin:0;
-  width:auto}
 .planner-grid:has(.mobile-visible) .planner-panel {
   display:none}
 .mobile-map-toggle {
@@ -1438,8 +1297,6 @@ footer>span:last-child {
   font-size:10px}
 .detail-summary h3 {
   font-size:24px}
-.map-controls {
-  top:65px}
 .card-footer {
   font-size:10px}
 .field-row {
@@ -1455,4 +1312,48 @@ footer>span:last-child {
   * {
   scroll-behavior:auto!important;
   transition:none!important}
+}
+
+.street-map-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:12px;
+}
+.street-map-tools button[aria-pressed="true"] {
+  color:var(--text);
+  background:var(--orange-soft);
+  border-color:var(--orange);
+}
+.street-map-canvas {
+  isolation:isolate;
+}
+.street-map-info {
+  padding:12px 15px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+}
+.street-map-info p + p {
+  margin-top:4px;
+}
+.map-destination {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.map-destination select {
+  min-width:0;
+  max-width:100%;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:6px;
+  background:var(--surface);
+}
+@media (max-width:760px) {
+  .street-map-canvas {
+    height:clamp(300px, 56svh, 560px);
+  }
 }
