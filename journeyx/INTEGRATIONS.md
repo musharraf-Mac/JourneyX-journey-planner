@@ -19,22 +19,19 @@ Email verification, password recovery, and distributed rate limiting are deploym
 
 ## Groq
 
-Set GROQ_API in .env. The default model is openai/gpt-oss-20b, served by Groq. Set GROQ_MODEL to use another chat model available to your Groq account. The key stays server-side. The assistant uses Groq's OpenAI-compatible chat completions API with bounded output. No account credentials are sent to Groq. Questions and computed demo journey summaries are sent to Groq. The assistant is stateless and does not save chats. It recomputes the selected journey with validated mode and disruption inputs. Missing credentials produce a clear unavailable state, never a fake AI response.
+Set GROQ_API in .env. The default model is openai/gpt-oss-20b, served by Groq. Set GROQ_MODEL to use another chat model available to your Groq account. The key stays server-side. The assistant uses Groq for general app help. Route questions are answered directly from the bus planner using named stops or the selected journey, with disruptions applied. Bus route answers work without a Groq key. The app sends general help prompts to Groq and uses a built-in help response if the provider is unavailable.
 
-## Actual transport: verified source discovery, not an imported live feed
+## Bus data and map
 
-Checked 2026-11-17:
-
-- Official railway timetable search: https://eservices.railway.gov.lk/schedule/searchTrain.action
-- Official railway timetable index: https://www.railway.gov.lk/web/index.php?Itemid=0&id=1024&lang=en&option=com_content&view=article
+- Bus 177 route reference: https://routemaster.lk/bus/177/
 - NTC bus route maps: https://www.ntc.gov.lk/Bus_info/route_map.php
-- RDMNS: https://www.rdmns.lk/
+- Street-map tiles: https://operations.osmfoundation.org/policies/tiles/
 
-RDMNS describes live schedules and community alerts but its public landing page is not a documented API. The official timetable/map pages could not be retrieved through the research tool. No current bus stop sequences or dated train departures have been verified or imported. Existing routes remain explicitly simulated. Source links are available in the assistant.
+Route 177 covers a subset of published areas between Kaduwela and Kollupitiya. JourneyX uses estimated travel metrics and approximate stop coordinates. The location control uses the browser's geolocation permission and stops watching when turned off or when the map unmounts. The app does not save passenger coordinates.
 
 ## Required next data steps
 
-1. Obtain a licensed feed or official downloadable timetable and route-stop sequences. Record source URL, license, retrieval date, verification date and validity window.
+1. Obtain a licensed bus feed or official downloadable bus timetables and route-stop sequences. Record source URL, license, retrieval date, verification date and validity window.
 2. Import directional Service/Trip/StopTime records. Seconds from service-day midnight allow times beyond 24:00. Apply operating days and date-specific exceptions in Asia/Colombo.
 3. Geocode arbitrary start/end locations and ask a pedestrian routing provider for actual walkable paths to candidate stops. Save geometry, road instructions, distance, accessibility and source. Straight-line proximity must not imply walkability or bus service.
 4. Join walking legs with verified service legs; check boarding permission, departure time and transfer buffers. Offer walking-only alternatives when no service is available. Never infer bus coverage from a road line.
