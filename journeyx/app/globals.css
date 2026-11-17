@@ -978,6 +978,111 @@ dialog {
 dialog::backdrop {
   background:#091a2c80;
   backdrop-filter:blur(5px)}
+.assistant-launch {
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:30}
+.assistant-intro {
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+  margin-bottom:16px}
+.assistant-chat {
+  max-height:430px;
+  overflow:auto;
+  padding:4px 3px 4px 0;
+  scroll-behavior:smooth}
+.assistant-message {
+  max-width:92%;
+  margin:0 0 16px;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow-wrap:anywhere}
+.assistant-message.user {
+  margin-left:auto;
+  background:var(--orange-soft);
+  border-color:#ed713e55}
+.assistant-message.assistant {
+  background:var(--bg)}
+.assistant-role {
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  margin-bottom:7px;
+  text-transform:uppercase}
+.assistant-message>p {
+  margin:0;
+  line-height:1.65;
+  white-space:pre-wrap}
+.assistant-content p {
+  margin:0 0 9px;
+  line-height:1.65}
+.assistant-content h4 {
+  margin:5px 0 9px;
+  font-size:14px}
+.assistant-content strong {
+  color:var(--text)}
+.assistant-spacer {
+  height:4px}
+.assistant-bullet {
+  display:flex;
+  gap:8px}
+.assistant-bullet>span {
+  color:var(--orange);
+  flex:none}
+.assistant-data-row {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:12px}
+.assistant-data-row span {
+  overflow-wrap:anywhere}
+.assistant-typing span {
+  animation:assistant-dot 1.2s infinite}
+.assistant-typing span:nth-child(2) {animation-delay:.15s}
+.assistant-typing span:nth-child(3) {animation-delay:.3s}
+@keyframes assistant-dot {0%,60%,100%{opacity:.25}30%{opacity:1}}
+.assistant-composer {
+  border-top:1px solid var(--border);
+  margin-top:5px;
+  padding-top:16px}
+.assistant-composer textarea {
+  width:100%;
+  min-height:58px;
+  resize:vertical;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--bg);
+  color:var(--text);
+  font:inherit;
+  line-height:1.5;
+  padding:11px 12px}
+.assistant-composer textarea:focus {outline:2px solid #ed713e66}
+.assistant-composer>div {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:8px}
+.assistant-composer>div>span {
+  color:var(--muted);
+  font-size:11px}
+.assistant-sources {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 14px;
+  border-top:1px solid var(--border);
+  margin-top:18px;
+  padding-top:14px;
+  font-size:11px}
+.assistant-sources strong {width:100%;font-size:12px}
+.assistant-sources a {color:var(--muted)}
 .modal-header {
   display:flex;
   align-items:center;
