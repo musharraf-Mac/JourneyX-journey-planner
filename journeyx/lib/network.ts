@@ -1,6 +1,29 @@
+// Area-centre coordinates for orientation, not precise boarding locations.
 export const stops = [
-    ['fort', 'Colombo Fort', 280, 160], ['pettah', 'Pettah', 355, 120], ['maradana', 'Maradana', 465, 210], ['dematagoda', 'Dematagoda', 580, 130], ['borella', 'Borella', 600, 315], ['townhall', 'Town Hall', 445, 335], ['slave', 'Slave Island', 305, 285], ['kollupitiya', 'Kollupitiya', 300, 410], ['bambalapitiya', 'Bambalapitiya', 345, 530], ['wellawatte', 'Wellawatte', 405, 655], ['dehiwala', 'Dehiwala', 475, 765], ['mount', 'Mount Lavinia', 515, 860], ['thimbirigasyaya', 'Thimbirigasyaya', 530, 490], ['narahenpita', 'Narahenpita', 650, 475], ['nugegoda', 'Nugegoda', 675, 660], ['rajagiriya', 'Rajagiriya', 760, 320],
-].map(([id, name, x, y]) => ({ id: String(id), name: String(name), x: Number(x), y: Number(y) }));
+    { id: 'fort', name: 'Colombo Fort', lat: 6.9344, lng: 79.8501 },
+    { id: 'pettah', name: 'Pettah', lat: 6.9366, lng: 79.8572 },
+    { id: 'maradana', name: 'Maradana', lat: 6.9289, lng: 79.8648 },
+    { id: 'dematagoda', name: 'Dematagoda', lat: 6.9389, lng: 79.8791 },
+    { id: 'borella', name: 'Borella', lat: 6.9146, lng: 79.8774 },
+    { id: 'townhall', name: 'Town Hall', lat: 6.9167, lng: 79.8635 },
+    { id: 'slave', name: 'Slave Island', lat: 6.9228, lng: 79.8508 },
+    { id: 'kollupitiya', name: 'Kollupitiya', lat: 6.9105, lng: 79.8501 },
+    { id: 'bambalapitiya', name: 'Bambalapitiya', lat: 6.8937, lng: 79.8552 },
+    { id: 'wellawatte', name: 'Wellawatte', lat: 6.8759, lng: 79.8609 },
+    { id: 'dehiwala', name: 'Dehiwala', lat: 6.8526, lng: 79.8655 },
+    { id: 'mount', name: 'Mount Lavinia', lat: 6.8389, lng: 79.8647 },
+    { id: 'thimbirigasyaya', name: 'Thimbirigasyaya', lat: 6.8963, lng: 79.8702 },
+    { id: 'narahenpita', name: 'Narahenpita', lat: 6.8960, lng: 79.8846 },
+    { id: 'nugegoda', name: 'Nugegoda', lat: 6.8720, lng: 79.8896 },
+    { id: 'rajagiriya', name: 'Rajagiriya', lat: 6.9091, lng: 79.8931 },
+    { id: 'battaramulla', name: 'Battaramulla', lat: 6.9001, lng: 79.9195 },
+    { id: 'malabe', name: 'Malabe', lat: 6.9042, lng: 79.9547 },
+    { id: 'kaduwela', name: 'Kaduwela', lat: 6.9374, lng: 79.9853 },
+];
+export const busRouteSources: Readonly<Partial<Record<string, string>>> = {
+    '177': 'https://routemaster.lk/bus/177/',
+};
+
 const rows: [
     string,
     string,
@@ -10,12 +33,15 @@ const rows: [
     number
 ][] = [
     ['fort', 'slave', '100', 8, 12, 85], ['slave', 'kollupitiya', '100', 7, 10, 85], ['kollupitiya', 'bambalapitiya', '100', 8, 12, 85], ['bambalapitiya', 'wellawatte', '100', 9, 14, 85], ['wellawatte', 'dehiwala', '100', 8, 12, 85], ['dehiwala', 'mount', '100', 7, 10, 85],
-    ['fort', 'bambalapitiya', 'Coastal', 13, 22, 93], ['bambalapitiya', 'wellawatte', 'Coastal', 5, 10, 93], ['wellawatte', 'dehiwala', 'Coastal', 5, 10, 93], ['dehiwala', 'mount', 'Coastal', 4, 10, 93],
     ['fort', 'pettah', '138', 4, 8, 78], ['pettah', 'maradana', '138', 7, 10, 78], ['maradana', 'townhall', '138', 9, 12, 78], ['townhall', 'thimbirigasyaya', '138', 10, 14, 78], ['thimbirigasyaya', 'nugegoda', '138', 13, 18, 78],
     ['pettah', 'dematagoda', '154', 11, 15, 88], ['dematagoda', 'borella', '154', 9, 12, 88], ['borella', 'narahenpita', '154', 10, 14, 88], ['narahenpita', 'nugegoda', '154', 12, 16, 88],
-    ['slave', 'townhall', '120', 8, 10, 82], ['townhall', 'borella', '120', 8, 12, 82], ['borella', 'rajagiriya', '177', 9, 15, 84], ['kollupitiya', 'townhall', '177', 9, 12, 84], ['bambalapitiya', 'thimbirigasyaya', '104', 7, 10, 90], ['thimbirigasyaya', 'narahenpita', '104', 6, 8, 90], ['wellawatte', 'nugegoda', '163', 11, 15, 86], ['nugegoda', 'dehiwala', '163', 13, 18, 86],
+    ['slave', 'townhall', '120', 8, 10, 82], ['townhall', 'borella', '120', 8, 12, 82], ['borella', 'rajagiriya', '177', 9, 15, 84], ['kollupitiya', 'borella', '177', 16, 20, 84], ['bambalapitiya', 'thimbirigasyaya', '104', 7, 10, 90], ['thimbirigasyaya', 'narahenpita', '104', 6, 8, 90], ['wellawatte', 'nugegoda', '163', 11, 15, 86], ['nugegoda', 'dehiwala', '163', 13, 18, 86],
+    // Selected areas along published route 177. Metrics remain simulated.
+    ['rajagiriya', 'battaramulla', '177', 11, 12, 84],
+    ['battaramulla', 'malabe', '177', 15, 18, 84],
+    ['malabe', 'kaduwela', '177', 13, 16, 84],
 ];
-export const connections = rows.map(([from, to, service, minutes, fare, reliability], i) => ({ id: `e${i}`, from, to, service, minutes, fare, reliability, mode: service === 'Coastal' ? 'train' : 'bus' }));
+export const connections = rows.map(([from, to, service, minutes, fare, reliability], i) => ({ id: `e${i < 6 ? i : i + 4}`, from, to, service, minutes, fare, reliability }));
 export type Connection = typeof connections[number];
 export type Priority = 'Balanced' | 'Fastest' | 'Cheapest' | 'Reliable';
 export type Disruption = {
@@ -34,18 +60,18 @@ export type Journey = {
     score: number;
 };
 export const stopName = (id: string) => stops.find(s => s.id === id)?.name ?? id;
-export function findJourneys(from: string, to: string, priority: Priority, disruptions: Disruption[], mode = 'all'): Journey[] {
+export function findJourneys(from: string, to: string, priority: Priority, disruptions: Disruption[], service?: string): Journey[] {
     if (from === to || !stops.some(s => s.id === from) || !stops.some(s => s.id === to))
         return [];
     const result: Journey[] = [];
-    const edges = connections.filter(e => (mode === 'all' || e.mode === mode) && !disruptions.some(d => d.edgeId === e.id && d.kind === 'closed'));
+    const edges = connections.filter(e => (!service || e.service === service) && !disruptions.some(d => d.edgeId === e.id && d.kind === 'closed'));
     function visit(node: string, nodes: string[], legs: Connection[]) {
         if (node === to) {
             const boardings = legs.filter((e, i) => i === 0 || e.service !== legs[i - 1].service), transfers = boardings.length - 1;
             const delays = legs.reduce((sum, e) => sum + (disruptions.find(d => d.edgeId === e.id)?.delay ?? 0), 0);
             const ride = legs.reduce((sum, e) => sum + e.minutes, 0);
-            const minutes = ride + boardings.reduce((sum, e) => sum + (e.mode === 'train' ? 10 : 5), 0) + transfers * 3 + delays;
-            const fare = legs.reduce((sum, e) => sum + e.fare, 0) + boardings.reduce((sum, e) => sum + (e.mode === 'train' ? 65 : 25), 0);
+            const minutes = ride + boardings.length * 5 + transfers * 3 + delays;
+            const fare = legs.reduce((sum, e) => sum + e.fare, 0) + boardings.length * 25;
             const reliability = Math.max(10, Math.round(legs.reduce((sum, e) => sum + e.reliability * e.minutes, 0) / ride - transfers * 3 - delays * .6));
             result.push({ id: legs.map(e => e.id).join('-'), nodes, legs, minutes, fare, transfers, reliability, score: 0 });
             return;

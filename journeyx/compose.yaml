@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: journeyx
+      POSTGRES_DB: journeyx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - journeyx_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U journeyx -d journeyx"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  journeyx_pg:
