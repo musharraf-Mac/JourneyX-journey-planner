@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  createdAt DateTime @default(now())
+  sessions Session[]
+  journeys SavedJourney[]
+}
+model Session {
+  tokenHash String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  @@index([userId])
+}
+model SavedJourney {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  from String
+  to String
+  priority String
+  createdAt DateTime @default(now())
+  @@unique([userId, from, to, priority])
+}
+model TransportSource {
+  id String @id @default(cuid())
+  name String
+  url String @unique
+  retrievedAt DateTime?
+  license String?
+  services Service[]
+}
+model Stop {
+  id String @id @default(cuid())
+  name String
+  latitude Float
+  longitude Float
+  accessible Boolean?
+  calls StopTime[]
+  walkingFrom WalkingLink[] @relation("walkingFrom")
+  walkingTo WalkingLink[] @relation("walkingTo")
+}
+model Service {
+  id String @id @default(cuid())
+  routeNumber String
+  name String
+  mode TransportMode
+  sourceId String
+  source TransportSource @relation(fields: [sourceId], references: [id])
+  verifiedAt DateTime?
+  validUntil DateTime?
+  trips Trip[]
+  @@unique([sourceId, routeNumber, mode])
+}
+enum TransportMode {
+  BUS
+  TRAIN
+}
+model Trip {
+  id String @id @default(cuid())
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  direction String
+  timezone String @default("Asia/Colombo")
+  operatingDays Int[]
+  validFrom DateTime
+  validUntil DateTime
+  calls StopTime[]
+  exceptions TripException[]
+}
+model TripException {
+  id String @id @default(cuid())
+  tripId String
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  date DateTime @db.Date
+  runs Boolean
+  @@unique([tripId, date])
+}
+model StopTime {
+  id String @id @default(cuid())
+  tripId String
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  stopId String
+  stop Stop @relation(fields: [stopId], references: [id])
+  sequence Int
+  arrivalSeconds Int
+  departureSeconds Int
+  pickupAllowed Boolean @default(true)
+  dropoffAllowed Boolean @default(true)
+  @@unique([tripId, sequence])
+  @@index([stopId])
+}
+model WalkingLink {
+  id String @id @default(cuid())
+  fromId String
+  toId String
+  from Stop @relation("walkingFrom", fields: [fromId], references: [id])
+  to Stop @relation("walkingTo", fields: [toId], references: [id])
+  distanceMeters Int
+  durationSeconds Int
+  instructions Json
+  geometry Json
+  sourceUrl String
+  verifiedAt DateTime
+  accessible Boolean?
+  @@unique([fromId, toId])
+}
